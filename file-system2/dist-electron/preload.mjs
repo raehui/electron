@@ -15,6 +15,7 @@ electron.contextBridge.exposeInMainWorld("api", {
     });
   },
   // 비동기 처리
+  // invoke 은 작업을 하고 바로 받아올 수 있다. + handle(주목)
   load2: () => {
     return electron.ipcRenderer.invoke("loadMemo2");
   },

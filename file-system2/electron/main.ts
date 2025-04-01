@@ -79,7 +79,8 @@ app.whenReady().then(() => {
   }
 
   // ipcRenderer.send("saveMemo",데이터) 를 호출하면 아래의 함수가 호출된다.
-  ipcMain.on("saveMemo", (_event, content: string) => {
+  // ???
+  ipcMain.on("saveMemo", async(_event, content: string) => {
     console.log("saveMeno!");
     console.log(__dirname);
     const filePath = path.join(__dirname, "../file/myMemo.txt");
@@ -87,7 +88,21 @@ app.whenReady().then(() => {
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
     // 파일에 문자열 출력하기
     fs.writeFileSync(filePath, content, "utf-8");
+    // 알림 띄우기 (메세지 창 처럼)
+    // dialog.showMessageBox 은 promise 리턴함
+    const result =await dialog.showMessageBox(win!, {
+      type:"info",
+      buttons: ["확인", "취소"],
+      defaultId: 0,
+      title: "알림",
+      message: "저장했습니다!",
+      detail: "file 폴더에 문자열이 저장되었습니다."
+    });
+    console.log(result.response);
+
+
   });
+  
 
   ipcMain.on("loadMemo", (event) => {
     const filePath = path.join(__dirname, "../file/myMemo.txt");
@@ -128,6 +143,7 @@ app.whenReady().then(() => {
             const filePath = path.join(__dirname, "../file/myMemo.txt");
             const result = fs.readFileSync(filePath, "utf-8");
             // preload.ts 에 정의된 "loaded" 이벤트 발생시키면서 읽은 데이터 전달하기
+            // ipc renderer 이 주목할 이벤트를 발생시킴
             win!.webContents.send("loaded", result);
           }
         },
@@ -159,6 +175,9 @@ app.whenReady().then(() => {
           click: async () => {
             // 원하는 위치에 원하는 파일명으로 저장하기
             const { filePath } = await dialog.showSaveDialog({});
+            console.log(filePath);
+            // 파일을 선택하지 않았거나 취소 했을 때 
+            if(!filePath)return;
             win!.webContents.send("saveContent", {filePath});
 
           }

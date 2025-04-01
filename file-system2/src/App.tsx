@@ -1,6 +1,7 @@
 import 'bootstrap/dist/css/bootstrap.css'
 import { useEffect, useRef } from 'react'
 
+// 타입 스크립트 지원
 declare global {
   // api 의 type 을 미리 정의하고
   type ApiType = {
@@ -19,6 +20,7 @@ declare global {
 }
 
 function App() {
+  // callback 함수로 특정 시점에 동작된다.
   useEffect(() => {
     // 함수를 call 하면서 함수를 전달
     window.api.onLoad((content) => {

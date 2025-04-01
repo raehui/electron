@@ -1,6 +1,7 @@
 import { ipcRenderer, contextBridge } from 'electron'
 
 // 여기는 renderer 프로세스 = 화면 구성하는 프로세스
+// App.tsx 에서 window.api.onLoad 와 같은 코드를 사용하게 해줌
 contextBridge.exposeInMainWorld('api', {  
   // widow.api.save()
   save:(content:string)=>{
@@ -20,6 +21,7 @@ contextBridge.exposeInMainWorld('api', {
     });
   },
   // 비동기 처리
+  // invoke 은 작업을 하고 바로 받아올 수 있다. + handle(주목)
   load2:()=> {
     return ipcRenderer.invoke("loadMemo2");
   },
@@ -28,6 +30,7 @@ contextBridge.exposeInMainWorld('api', {
   onSave: (callback: ()=> string)=>{
     ipcRenderer.on("saveContent", (_event, data)=>{
       // 현재까지 입력한 문자열 읽어오기
+      // callback 함수로 저장된 내용 불러오기
       const content = callback();
       // 콘솔에 출력하기
       console.log("현재까지 입력한 문자열: "+content);
