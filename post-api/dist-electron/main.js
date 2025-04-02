@@ -11655,7 +11655,14 @@ var _eval = EvalError;
 var range = RangeError;
 var ref = ReferenceError;
 var syntax = SyntaxError;
-var type = TypeError;
+var type;
+var hasRequiredType;
+function requireType() {
+  if (hasRequiredType) return type;
+  hasRequiredType = 1;
+  type = TypeError;
+  return type;
+}
 var uri = URIError;
 var abs$1 = Math.abs;
 var floor$1 = Math.floor;
@@ -11915,7 +11922,7 @@ function requireCallBindApplyHelpers() {
   if (hasRequiredCallBindApplyHelpers) return callBindApplyHelpers;
   hasRequiredCallBindApplyHelpers = 1;
   var bind2 = requireFunctionBind();
-  var $TypeError2 = type;
+  var $TypeError2 = requireType();
   var $call2 = requireFunctionCall();
   var $actualApply = requireActualApply();
   callBindApplyHelpers = function callBindBasic(args) {
@@ -11995,7 +12002,7 @@ var $EvalError = _eval;
 var $RangeError = range;
 var $ReferenceError = ref;
 var $SyntaxError = syntax;
-var $TypeError$1 = type;
+var $TypeError$1 = requireType();
 var $URIError = uri;
 var abs = abs$1;
 var floor = floor$1;
@@ -12326,7 +12333,7 @@ var GetIntrinsic2 = getIntrinsic;
 var $defineProperty = GetIntrinsic2("%Object.defineProperty%", true);
 var hasToStringTag = requireShams()();
 var hasOwn = requireHasown();
-var $TypeError = type;
+var $TypeError = requireType();
 var toStringTag = hasToStringTag ? Symbol.toStringTag : null;
 var esSetTostringtag = function setToStringTag(object, value) {
   var overrideIfSet = arguments.length > 2 && !!arguments[2] && arguments[2].force;
@@ -16712,16 +16719,39 @@ const {
   getAdapter,
   mergeConfig
 } = axios;
+const api = axios.create({
+  baseURL: "http://localhost:9000"
+  // 기본 URL 설정
+});
+api.interceptors.request.use(
+  (config) => {
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API Error:", error);
+    return Promise.reject(error);
+  }
+);
 ipcMain.handle("get-posts", async () => {
-  const response = await axios.get("http://localhost:9000/v1/posts");
+  const response = await api.get("/v1/posts");
   return response.data;
 });
 ipcMain.handle("add-post", async (_event, newPost) => {
-  const response = await axios.post("http://localhost:9000/v1/posts", newPost);
+  const response = await api.post("/v1/posts", newPost);
   return response.data;
 });
 ipcMain.handle("delete-post", async (_event, id) => {
-  const response = await axios.delete("http://localhost:9000/v1/posts/" + id);
+  const response = await api.delete("/v1/posts/" + id);
+  return response.data;
+});
+ipcMain.handle("update-post", async (_event, post) => {
+  const response = await api.put(`/v1/posts/${post.id}`, post);
   return response.data;
 });
 createRequire(import.meta.url);

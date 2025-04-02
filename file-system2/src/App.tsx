@@ -7,13 +7,12 @@ declare global {
   type ApiType = {
     save: (a: string) => void,
     load: () => void,
-    // ???
     onLoad: (callback: (a: string) => void) => void,
     load2: () => Promise<string>, // 문자 데이터를 담고 있는 Promise 객체를 리턴하는 함수
     load3: () => Promise<string>,
     onSave: (callback: () => string) => void
   }
-
+  
   interface Window {
     api: ApiType // 정의된 type 을 사용하기
   }
