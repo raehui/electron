@@ -99,7 +99,6 @@ function App() {
       show: true,
       post: item
     });
-
   }
 
   /*

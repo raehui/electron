@@ -14,7 +14,7 @@ ipcMain.handle("get-posts", async()=>{
 
 // async 함수의 매개변수(_event, 전달한 데이터)
 ipcMain.handle("add-post", async(_event, newPost)=>{
-    const response = await api.post<Post>("/v1/posts", newPost);
+    const response = await api.post<Post>("/v1/posts", newPost); 
     return response.data;
 });
 
