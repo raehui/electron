@@ -1,4 +1,4 @@
-import { ipcRenderer, contextBridge } from 'electron'
+import { ipcRenderer, contextBridge, ipcMain } from 'electron'
 
 // --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('api', {
@@ -13,5 +13,21 @@ contextBridge.exposeInMainWorld('api', {
       ipcRenderer.send("save-image", imageData);
       
     });
+  },
+  onCaptureStart:(callback:()=>void)=>{
+    //  main  process 에서 "capture-start" 이벤트가 발생하면
+    ipcRenderer.on("capture-start", ()=>{
+      // App.ts 에서 전달했던 함수를 호출해준다.
+      callback();
+    })
+  },
+  selectCapture :(area)=>{
+    // main process 에 select-capture 이벤트를 발생 시키면서 capture 할 영역을 전달한다. 
+    ipcRenderer.send("select-capture", area);
+  }, 
+  onCapturedData:(callback:(a:string)=>void)=>{
+    ipcRenderer.on("captured-data", (_event, data)=>{
+      callback(data);
+    })
   }
 })

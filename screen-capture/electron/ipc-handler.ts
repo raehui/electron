@@ -1,7 +1,19 @@
-import { desktopCapturer, dialog, ipcMain, screen } from "electron";
+import { BrowserWindow, clipboard, desktopCapturer, dialog, ipcMain, screen } from "electron";
 
 import fs from "node:fs"
 import { buffer } from "node:stream/consumers";
+
+/*
+    main.ts 에 있는 BrowserWindow 의 참조값을 주입 받을 함수를 export 해준다.
+*/
+
+let mainWindow:BrowserWindow|null = null;
+let overlayWindow:BrowserWindow|null = null;
+// 의존성을 주입 받은 함수를 주입
+export function setBrowserWindow(main:BrowserWindow, overlay:BrowserWindow){
+  mainWindow=main;
+  overlayWindow=overlay;
+}
 
 // renderer 프로세스에서 발생시키는 "save-image" 이벤트 처리
 ipcMain.on("save-image", async(_event, ImageData) => {
@@ -48,8 +60,39 @@ ipcMain.handle("screen-capture", async () => {
         const thumbnail = screen.thumbnail;
         // 캡쳐된 이미지 객체를 data Url 문자열로 얻어내서 리턴한다.
         const dataUrl = thumbnail.toDataURL();
+        // 클립보드에 넣기
+        clipboard.writeImage(thumbnail);
         return dataUrl;
     }
 
     throw new Error("Error!");
+});
+
+ipcMain.on("select-capture", async(_event, area)=>{
+    const display = screen.getPrimaryDisplay();
+    const { bounds } = display;
+  
+    const sources = await desktopCapturer.getSources({
+      types: ['screen'],
+      thumbnailSize: { width: bounds.width, height: bounds.height },
+    });
+  
+    if (sources.length > 0) {
+      const screenSource = sources[0];
+      const thumbnail = screenSource.thumbnail;
+  
+      if (!thumbnail.isEmpty()) {
+        // thumbnail (전체화면) 에서 area 만 잘라내서 가져오기
+        const croppedImage = thumbnail.crop(area);
+        overlayWindow?.hide();
+        mainWindow?.show();
+        // renderdr process 에 'captured-data' 이벤트 발생시키면서 캡쳐된 이미지의 data url 전달
+        mainWindow?.webContents.send('captured-data', croppedImage.toDataURL());
+        // capture된 이미지를 클립보드에 복사하기
+        clipboard.writeImage(croppedImage);
+        return ;
+      }
+    }
+  
+    throw new Error('No screen sources found.');
 });
